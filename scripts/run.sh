@@ -26,8 +26,9 @@ rm -rf reference && mkdir reference
 rm -rf backup-borg && mkdir backup-borg
 cd - > /dev/null || fail "cd failed"
 
+log "Cloning the Linux kernel"
 cd "${WORKING_DIR}" || fail "cd failed"
-#git clone git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git linux
+git clone git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git linux
 cd - > /dev/null || fail "cd failed"
 
 # Initialize backup
