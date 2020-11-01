@@ -1,7 +1,25 @@
 #!/bin/bash
 #
-# Runs a backup reliablity test
-# Simulates backup creation from $START_DATE to $END_DATE
+# Run a backup reliablity test
+#
+# This script simulates backup creation from $START_DATE to $END_DATE and
+# validates restored backups. It returns with return code 0 if the
+# simulation and validation succeeded. In any other case it will exit
+# with return code 1.
+#
+# Copyright (C) 2020 Marc-André Bühler
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 source ./scripts/functions.sh
 
