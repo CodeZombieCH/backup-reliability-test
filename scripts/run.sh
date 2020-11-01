@@ -14,11 +14,11 @@ export WORKING_DIR="${home_dir}/backup-verification"
 
 # Print version information
 log "Printing version information"
-diff --version
-rsync --version
-git --version
-md5sum --version
-sha512sum --version
+log "diff --version" && diff --version
+log "rsync --version" && rsync --version
+log "git --version" && git --version
+log "md5sum --version" && md5sum --version
+log "sha512sum --version" && sha512sum --version
 
 # Initialization
 cd "${WORKING_DIR}" || fail "cd failed"
