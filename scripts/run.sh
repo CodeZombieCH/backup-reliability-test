@@ -25,7 +25,6 @@ source ./scripts/functions.sh
 
 home_dir=$( getent passwd "$USER" | cut -d: -f6 )
 export WORKING_DIR="${home_dir}/backup-verification"
-#export SOURCE_BASE_PATH=/home/mab/backup-verification/reference
 
 
 # Main ------------------------------------------------------------------------
