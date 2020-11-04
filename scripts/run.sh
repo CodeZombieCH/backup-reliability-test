@@ -40,6 +40,7 @@ log "sha512sum --version" && sha512sum --version
 # Initialization
 cd "${WORKING_DIR}" || fail "cd failed"
 rm -rf reference && mkdir reference
+rm -rf restore
 rm -rf backup-borg && mkdir backup-borg
 cd - > /dev/null || fail "cd failed"
 
