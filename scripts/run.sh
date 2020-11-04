@@ -96,9 +96,15 @@ while [ "${DATE}" != "${END_DATE}" ]; do
             || fail "Restoring to ${RESTORE_DIR} failed"
 
         # Validate
-        log "Comparing restored backup with reference"
         REFERENCE_DIR="${WORKING_DIR}/reference/${RESTORE_DATE}"
-        diff --brief --recursive "${REFERENCE_DIR}" "${RESTORE_DIR}" \
+
+        log "Comparing restored backup with reference (diff)"
+        REFERENCE_DIR=${REFERENCE_DIR} RESTORE_DIR=${RESTORE_DIR} ./scripts/comparison/diff-compare.sh \
+            || fail "VALIDATION FAILED!\nRestored backup ${RESTORE_DIR} is not identical with reference ${REFERENCE_DIR}"
+        log "Validation succeeded"
+
+        log "Comparing restored backup with reference (sha512sum)"
+        REFERENCE_DIR=${REFERENCE_DIR} RESTORE_DIR=${RESTORE_DIR} ./scripts/comparison/sha512sum-compare.sh \
             || fail "VALIDATION FAILED!\nRestored backup ${RESTORE_DIR} is not identical with reference ${REFERENCE_DIR}"
         log "Validation succeeded"
 
