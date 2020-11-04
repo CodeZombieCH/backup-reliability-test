@@ -44,10 +44,18 @@ rm -rf restore
 rm -rf backup-borg && mkdir backup-borg
 cd - > /dev/null || fail "cd failed"
 
-log "Cloning the Linux kernel"
-cd "${WORKING_DIR}" || fail "cd failed"
-git clone git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git linux
-cd - > /dev/null || fail "cd failed"
+# Get latest version of Linux kernel
+if [ ! -d "${WORKING_DIR}/linux" ]; then
+    log "Cloning the Linux kernel"
+    cd "${WORKING_DIR}" || fail "cd failed"
+    git clone --no-checkout git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git linux
+    cd - > /dev/null || fail "cd failed"
+else
+    cd "${WORKING_DIR}/linux" || fail "cd failed"
+    git fetch origin master || fail "git fetch failed"
+    git reset --hard origin/master || fail "git reset failed"
+    cd - > /dev/null || fail "cd failed"
+fi
 
 # Initialize backup
 log "Initializing backup repository"
