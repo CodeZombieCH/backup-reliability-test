@@ -164,9 +164,8 @@ while [ "${DATE}" != "${end_date}" ]; do
         rm -rf "${RESTORE_DIR}" || fail "rm -rf failed"
         mkdir "${RESTORE_DIR}" || fail "mkdir failed"
 
-        log "Restoring to ${RESTORE_DIR}"
         TARGET_PATH=${RESTORE_DIR} DATE=${RESTORE_DATE} ./scripts/borg/02_restore.sh \
-            || fail "Restoring to ${RESTORE_DIR} failed"
+            || fail "Restoring backup from ${RESTORE_DATE} to ${RESTORE_DIR} failed"
 
         # Validate
         REFERENCE_DIR="${WORKING_DIR}/reference/${RESTORE_DATE}"
