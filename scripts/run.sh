@@ -127,7 +127,7 @@ fi
 # Initialize backup
 log "Initializing backup repository"
 ./scripts/borg/00_init.sh \
-    || fail "Restoring to ${RESTORE_DIR} failed"
+    || fail "Initializing backup repository failed"
 
 declare -a BACKUPS
 
