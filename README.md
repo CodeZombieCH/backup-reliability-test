@@ -41,9 +41,25 @@ Clone the git repo:
 
 Run the backup reliability test:
 
-    ./scripts/run.sh | tee -a run.log
+    ./scripts/run.sh <start-date> <end-date> | tee run.log
 
 Please be aware that this will take a long time (between 1 and 3 days)
+
+
+### Synopsis
+
+```bash
+run.sh [--verbose] [--comparison diff|sha512sum] <start-date> <end-date>
+```
+
+### Description
+
+- `-c, --comparison`:<br>
+    array of comparison strategies to use to validate restored backups. Calls a comparison script for each key passed based on the following convention: `./scripts/comparison/<key>-compare.sh`
+- `<start-date>`:<br>
+    start date of the backup payload to generate in the format 2020-01-01T00:00:00Z
+- `<end-date>`:<br>
+    end date of the backup payload to generate in the format 2020-01-31T00:00:00Z
 
 
 ## Procedure
@@ -52,7 +68,7 @@ Please be aware that this will take a long time (between 1 and 3 days)
 
 1. Print version information
 1. Backup Initialization
-1. From `$START_DATE` to `$END_DATE`
+1. From `$start_date` to `$end_date`
     1. Test Payload Generation
     1. Backup Creation
     1. (Backup pruning) (not yet implemented)

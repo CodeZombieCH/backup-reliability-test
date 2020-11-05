@@ -2,7 +2,7 @@
 #
 # Run a backup reliablity test
 #
-# This script simulates backup creation from $START_DATE to $END_DATE and
+# This script simulates backup creation from $start_date to $end_date and
 # validates restored backups. It returns with return code 0 if the
 # simulation and validation succeeded. In any other case it will exit
 # with return code 1.
@@ -23,11 +23,78 @@
 
 source ./scripts/functions.sh
 
+
+# Configuration ---------------------------------------------------------------
+
 home_dir=$( getent passwd "$USER" | cut -d: -f6 )
 export WORKING_DIR="${home_dir}/backup-verification"
 
 
+# Arguments -------------------------------------------------------------------
+
+# Heavily inspired by https://en.wikipedia.org/wiki/Getopts
+# We use "$@" instead of $* to preserve argument-boundary information
+options=$(getopt --options 'c:v' --long 'comparison:,verbose' -- "$@") || exit
+eval "set -- $options"
+
+verbose=0
+declare -a comparison
+
+while true; do
+    case $1 in
+        (-v|--verbose)
+            ((verbose++)); shift;;
+        (-c|--comparison)
+            comparison+=("$2"); shift 2;;
+        (--)
+            shift; break;;
+        (*)
+            fail "shit happened";; # error
+    esac
+done
+
+# Set default comparison if none defined
+if [ ${#comparison[@]} -eq 0 ]; then
+    comparison+=("diff")
+    log "Defaulting to diff comparison"
+fi
+
+# Handle positional arguments
+remaining=("$@")
+if [ ${#remaining[@]} -ne 2 ]; then
+    fail "Unexpected number of arguments"
+fi
+start_date_raw=${remaining[0]}
+end_date_raw=${remaining[1]}
+
+# Validate arguments
+for strategy in "${comparison[@]}"
+do
+    strategy_script="./scripts/comparison/${strategy}-compare.sh"
+    if [ ! -f "${strategy_script}" ]; then
+        fail "Comparison strategy ${strategy} is not implemented (script file not found: ${strategy_script}"
+    fi
+done
+
+start_date=$(date --utc --date "$start_date_raw" +"%Y-%m-%dT%H:%M:%SZ") || fail "invalid start date"
+end_date=$(date --utc --date "$end_date_raw" +"%Y-%m-%dT%H:%M:%SZ") || fail "invalid end date"
+
+# Print all arguments
+if [ "$verbose" -gt 0 ]; then
+    log \
+        "Arguments: "
+        "verbose: $verbose," \
+        "comparison: ${comparison[*]}," \
+        "start: $start_date," \
+        "end: $end_date"
+fi
+
+
 # Main ------------------------------------------------------------------------
+
+# Print parameters
+log "Running backup reliablity test from ${start_date} to ${end_date}"
+log "Using '${comparison[*]}' to compare restored backup with reference data"
 
 # Print version information
 log "Printing version information"
@@ -62,14 +129,10 @@ log "Initializing backup repository"
 ./scripts/borg/00_init.sh \
     || fail "Restoring to ${RESTORE_DIR} failed"
 
-
-START_DATE="2020-01-01T00:00:00Z"
-END_DATE="2020-02-01T00:00:00Z"
 declare -a BACKUPS
-BACKUPS+=()
 
-DATE="${START_DATE}"
-while [ "${DATE}" != "${END_DATE}" ]; do
+DATE="${start_date}"
+while [ "${DATE}" != "${end_date}" ]; do
     log "Time travelling to ${DATE}"
 
     BACKUPS+=("${DATE}")
@@ -83,7 +146,8 @@ while [ "${DATE}" != "${END_DATE}" ]; do
     cd - > /dev/null || fail "cd failed"
 
     SOURCE_DIR="${WORKING_DIR}/reference/${DATE}"
-    rsync --archive --human-readable --quiet "${LINUX_DIR}" "${SOURCE_DIR}" \
+    # Temporary exclude .git directory
+    rsync --archive --human-readable --quiet --exclude .git "${LINUX_DIR}" "${SOURCE_DIR}" \
         || fail "rsync failed"
 
     # Run backup
@@ -107,20 +171,20 @@ while [ "${DATE}" != "${END_DATE}" ]; do
         # Validate
         REFERENCE_DIR="${WORKING_DIR}/reference/${RESTORE_DATE}"
 
-        log "Comparing restored backup with reference (diff)"
-        REFERENCE_DIR=${REFERENCE_DIR} RESTORE_DIR=${RESTORE_DIR} ./scripts/comparison/diff-compare.sh \
-            || fail "VALIDATION FAILED!\nRestored backup ${RESTORE_DIR} is not identical with reference ${REFERENCE_DIR}"
-        log "Validation succeeded"
-
-        log "Comparing restored backup with reference (sha512sum)"
-        REFERENCE_DIR=${REFERENCE_DIR} RESTORE_DIR=${RESTORE_DIR} ./scripts/comparison/sha512sum-compare.sh \
-            || fail "VALIDATION FAILED!\nRestored backup ${RESTORE_DIR} is not identical with reference ${REFERENCE_DIR}"
-        log "Validation succeeded"
+        for current_comparison in "${comparison[@]}"
+        do
+            log "Comparing restored backup with reference (${current_comparison})"
+            REFERENCE_DIR="${REFERENCE_DIR}" RESTORE_DIR="${RESTORE_DIR}" "./scripts/comparison/${current_comparison}-compare.sh" \
+                || fail "VALIDATION FAILED: Restored backup ${RESTORE_DIR} is not identical with reference ${REFERENCE_DIR}"
+            log "Validation succeeded"
+        done
 
         # Clean up
-        rm -rf ${RESTORE_DIR} || fail "rm -rf failed"
+        rm -rf "${RESTORE_DIR}" || fail "rm -rf failed"
     done
 
     # Append 1 day
     DATE=$(date --utc --date "${DATE} +1 day" +"%Y-%m-%dT%H:%M:%SZ")
 done
+
+log "Backup reliability test completed without errors"
