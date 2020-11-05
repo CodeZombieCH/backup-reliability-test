@@ -128,13 +128,14 @@ is preferred over
     rsync -q ..
 
 
-
 ## TODO
 
+- [ ] Add argument to specify working directory
+- [ ] Add argument to specify test payload, e.g. `--payload linux-kernel`
 - [ ] Convert local variables to lowercase
-- [ ] Implement options (see <https://en.wikipedia.org/wiki/Getopts> and <https://stackoverflow.com/questions/192249/how-do-i-parse-command-line-arguments-in-bash>)
+- [x] Implement options (see <https://en.wikipedia.org/wiki/Getopts> and <https://stackoverflow.com/questions/192249/how-do-i-parse-command-line-arguments-in-bash>)
 - [x] Disable progress indication (but keep introducing a --verbose flag?)
 - [ ] Speed improvements:
-    - [ ] Compare restored backup against list of md5/sha256 checksums
+    - [x] Compare restored backup against list of md5/sha256 checksums
 - [ ] Include prune operation
 - [ ] Measure execution time and CPU/memory usage
